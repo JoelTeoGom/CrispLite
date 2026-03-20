@@ -7,7 +7,7 @@ import (
 	"crisplite/internal/ports"
 )
 
-func Batcher(messages <-chan domain.Message, batchSize int, batchInterval time.Duration, processor ports.BatchProcessor) {
+func Batcher(messages <-chan domain.Message, batchSize int, batchInterval time.Duration, repo ports.MessageRepository) {
 	ticker := time.NewTicker(batchInterval)
 	defer ticker.Stop()
 
@@ -16,19 +16,19 @@ func Batcher(messages <-chan domain.Message, batchSize int, batchInterval time.D
 		select {
 		case <-ticker.C:
 			if len(batch) > 0 {
-				processor.ProcessBatch(batch)
+				repo.SaveBatch(batch)
 				batch = nil
 			}
 		case msg, ok := <-messages:
 			if !ok {
 				if len(batch) > 0 {
-					processor.ProcessBatch(batch)
+					repo.SaveBatch(batch)
 				}
 				return
 			}
 			batch = append(batch, &msg)
 			if len(batch) >= batchSize {
-				processor.ProcessBatch(batch)
+				repo.SaveBatch(batch)
 				batch = nil
 			}
 		}

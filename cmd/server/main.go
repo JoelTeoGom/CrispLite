@@ -3,21 +3,15 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"crisplite/internal/adapters/inbound/ws"
-	"crisplite/internal/adapters/outbound/stdout"
-	"crisplite/internal/application"
-	"crisplite/internal/domain"
+	database "crisplite/internal/adapters/outbound/stdout"
 )
 
 func main() {
-	processor := stdout.NewBatchProcessor()
-	messages := make(chan domain.Message, 10)
+	database := database.NewPostgresAdapter()
 
-	go application.Batcher(messages, 10, 500*time.Millisecond, processor)
-
-	wsHandler := ws.NewHandler(messages)
+	wsHandler := ws.NewHandler(database)
 	http.HandleFunc("/ws/v1/chat", wsHandler.ChatHandler)
 
 	fmt.Println("WebSocket server started on :8080")
