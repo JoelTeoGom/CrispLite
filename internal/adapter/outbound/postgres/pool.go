@@ -3,9 +3,9 @@ package postgres
 
 import (
 	"context"
+	"crisplite/internal/domain"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -16,18 +16,18 @@ var (
 	poolErr  error
 )
 
-func NewPool(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
+func NewPool(ctx context.Context, dbCfg domain.DatabaseConfig) (*pgxpool.Pool, error) {
 	poolOnce.Do(func() {
-		config, err := pgxpool.ParseConfig(dsn)
+		config, err := pgxpool.ParseConfig(dbCfg.URL)
 		if err != nil {
 			poolErr = fmt.Errorf("parsing pg config: %w", err)
 			return
 		}
 
-		config.MaxConns = 20
-		config.MinConns = 2
-		config.MaxConnLifetime = 30 * time.Minute
-		config.MaxConnIdleTime = 5 * time.Minute
+		config.MaxConns = int32(dbCfg.MaxConns)
+		config.MinConns = int32(dbCfg.MinConns)
+		config.MaxConnLifetime = dbCfg.MaxConnLife
+		config.MaxConnIdleTime = dbCfg.MaxConnIdle
 
 		p, err := pgxpool.NewWithConfig(ctx, config)
 		if err != nil {
