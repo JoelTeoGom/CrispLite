@@ -1,6 +1,6 @@
-package ports
+package outbound
 
-import "crisplite/domain"
+import "crisplite/internal/domain"
 
 type MessageRepository interface {
 	BulkMessageInsert(batch []*domain.Message) error

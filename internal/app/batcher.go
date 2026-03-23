@@ -1,23 +1,20 @@
-package main
+package app
 
 import (
-	"crisplite/database"
-	"crisplite/domain"
-	"crisplite/ports"
-	"fmt"
-	"net/http"
+	"crisplite/internal/domain"
+	"crisplite/internal/port/outbound"
 	"time"
 )
 
 type Batcher struct {
 	batchSize int
 	interval  time.Duration
-	processor ports.MessageRepository
+	processor outbound.MessageRepository
 	messages  <-chan domain.Message
 	done      chan struct{}
 }
 
-func NewBatcher(msgs <-chan domain.Message, size int, interval time.Duration, proc ports.MessageRepository) *Batcher {
+func NewBatcher(msgs <-chan domain.Message, size int, interval time.Duration, proc outbound.MessageRepository) *Batcher {
 	return &Batcher{
 		batchSize: size,
 		interval:  interval,
@@ -65,21 +62,5 @@ func (b *Batcher) run() {
 				batch = nil
 			}
 		}
-	}
-}
-
-func main() {
-	batchSize := 100
-	msgChannel := make(chan domain.Message, batchSize)
-	defer close(msgChannel)
-
-	postgres := database.NewPostgresAdapter()
-
-	batcher := NewBatcher(msgChannel, batchSize, 200*time.Millisecond, postgres)
-	//http.HandleFunc("/ws/v1/chat", wsHandler.ChatHandler)
-
-	fmt.Println("WebSocket server started on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		fmt.Println("Error starting server:", err)
 	}
 }
