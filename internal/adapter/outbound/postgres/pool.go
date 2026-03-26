@@ -1,4 +1,3 @@
-// internal/adapter/postgres/pool.go
 package postgres
 
 import (

@@ -13,7 +13,7 @@ import (
 
 type Handler struct {
 	hub         *Hub
-	chatService inbound.ChatService // puerto inbound, no el canal directamente
+	chatService inbound.ChatService
 }
 
 var upgrader = websocket.Upgrader{
@@ -34,7 +34,7 @@ func (h *Handler) wsHandler(w http.ResponseWriter, r *http.Request) {
 		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-				fmt.Println("conexión cerrada limpiamente")
+				fmt.Println("connection closed cleanly")
 			} else {
 				log.Println("read error:", err)
 			}
@@ -46,17 +46,13 @@ func (h *Handler) wsHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		//we send that to the general message buffer
-		h.messages <- m
-		fmt.Printf("Whatsapp enviado por %s {contenido: %s} a %s\n", m.SenderId, m.Content, m.ReceiverId)
+		// send message to chat service
+		err = h.chatService.Send(&m)
+		if err != nil {
+			log.Println("error scheduling message")
+			continue
+		}
+		fmt.Printf("message sent by %s {content: %s} to %s\n", m.SenderId, m.Content, m.ReceiverId)
 	}
 }
 
-// func main() {
-// 	http.HandleFunc("/ws", wsHandler)
-// 	fmt.Println("WebSocket server started on :8080")
-// 	err := http.ListenAndServe(":8080", nil)
-// 	if err != nil {
-// 		fmt.Println("Error starting server:", err)
-// 	}
-// }
