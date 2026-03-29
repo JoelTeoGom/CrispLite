@@ -3,11 +3,11 @@ package ws
 import (
 	"crisplite/internal/domain"
 	"crisplite/internal/port/inbound"
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -23,36 +23,28 @@ var upgrader = websocket.Upgrader{
 }
 
 func (h *Handler) wsHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+	wsConn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading:", err)
 		return
 	}
-	defer conn.Close()
 
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-				fmt.Println("connection closed cleanly")
-			} else {
-				log.Println("read error:", err)
-			}
-			break
-		}
-		var m domain.Message
-		if err := json.Unmarshal(msg, &m); err != nil {
-			log.Println("unmarshal error:", err)
-			continue
-		}
+	// TODO: extract userId from request (auth JWT)
+	userId := r.URL.Query().Get("userId")
+	uuid := uuid.New().String()
+	createdAt := time.Now()
 
-		// send message to chat service
-		err = h.chatService.Send(&m)
-		if err != nil {
-			log.Println("error scheduling message")
-			continue
-		}
-		fmt.Printf("message sent by %s {content: %s} to %s\n", m.SenderId, m.Content, m.ReceiverId)
+	client := &domain.Client{
+		ConnID:    uuid,
+		UserID:    userId,
+		Device:    "web", // TODO: determine device type
+		Conn:      wsConn,
+		CreatedAt: createdAt,
 	}
-}
 
+	conn := NewConnection(h.hub, wsConn, userId)
+	h.hub.Connect(userId, client)
+
+	go conn.readPump()
+	go conn.writePump()
+}
