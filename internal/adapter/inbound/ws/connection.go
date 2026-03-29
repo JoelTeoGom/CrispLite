@@ -1,9 +1,9 @@
 package ws
 
 import (
+	"crisplite/internal/domain"
+	"crisplite/internal/port/inbound"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 const (
@@ -14,19 +14,8 @@ const (
 )
 
 type Connection struct {
-	hub    *Hub
-	conn   *websocket.Conn
-	send   chan []byte
-	userId string
-}
-
-func NewConnection(hub *Hub, conn *websocket.Conn, userId string) *Connection {
-	return &Connection{
-		hub:    hub,
-		conn:   conn,
-		send:   make(chan []byte, 256),
-		userId: userId,
-	}
+	Client      *domain.Client
+	chatService inbound.ChatService
 }
 
 // readPump reads messages from the websocket and forwards them to the chat service.

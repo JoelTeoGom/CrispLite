@@ -12,7 +12,7 @@ import (
 )
 
 type Handler struct {
-	hub         *Hub
+	hub         inbound.Hub
 	chatService inbound.ChatService
 }
 
@@ -33,7 +33,6 @@ func (h *Handler) wsHandler(w http.ResponseWriter, r *http.Request) {
 	userId := r.URL.Query().Get("userId")
 	uuid := uuid.New().String()
 	createdAt := time.Now()
-
 	client := &domain.Client{
 		ConnID:    uuid,
 		UserID:    userId,
@@ -42,9 +41,13 @@ func (h *Handler) wsHandler(w http.ResponseWriter, r *http.Request) {
 		CreatedAt: createdAt,
 	}
 
-	conn := NewConnection(h.hub, wsConn, userId)
-	h.hub.Connect(userId, client)
+	conn := &Connection{
+		Client:      client,
+		chatService: h.chatService,
+	}
 
+	h.hub.Connect(userId, client)
+	defer h.hub.Disconnect(userId, uuid)
 	go conn.readPump()
 	go conn.writePump()
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"crisplite/internal/adapter/outbound/env"
+	"crisplite/internal/adapter/outbound/config"
 	"crisplite/internal/adapter/outbound/postgres"
 	"crisplite/internal/app"
 	"crisplite/internal/domain"
@@ -14,7 +14,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	loader, err := env.NewConfigLoader(".env")
+	loader, err := config.NewConfigLoader(".env")
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
