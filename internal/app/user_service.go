@@ -15,24 +15,31 @@ func NewUserService(userRepo outbound.UserRepository) *UserService {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user *domain.User) (string, error) {
-	if user.Username == "" || user.Password == "" {
-		return "", nil // TODO return proper error
+	if err := user.Validate(); err != nil {
+		return "", err
 	}
 	if _, err := s.userRepo.CheckUserExists(ctx, user.Username); err != nil {
 		return "", err
 	}
 
-	password := hashPassword(user.Password) // TODO implement password hashing
+	password, err := domain.HashPassword(user.Password)
+	if err != nil {
+		return "", err
+	}
 	user.Password = password
 	return s.userRepo.Save(ctx, user)
 }
 
 func (s *UserService) AddContact(ctx context.Context, userID, contactID string) error {
-	// TODO implement
+	if err := s.userRepo.AddContact(ctx, userID, contactID); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (s *UserService) RemoveContact(ctx context.Context, userID, contactID string) error {
-	// TODO implement
+	if err := s.userRepo.RemoveContact(ctx, userID, contactID); err != nil {
+		return err
+	}
 	return nil
 }
