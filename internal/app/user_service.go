@@ -18,9 +18,6 @@ func (s *UserService) CreateUser(ctx context.Context, user *domain.User) (string
 	if err := user.Validate(); err != nil {
 		return "", err
 	}
-	if _, err := s.userRepo.CheckUserExists(ctx, user.Username); err != nil {
-		return "", err
-	}
 
 	password, err := domain.HashPassword(user.Password)
 	if err != nil {

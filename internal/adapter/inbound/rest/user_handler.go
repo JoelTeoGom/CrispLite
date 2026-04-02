@@ -49,9 +49,49 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
-	// TODO implement
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		UserID    string `json:"user_id"`
+		ContactID string `json:"contact_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	err := h.userService.AddContact(r.Context(), req.UserID, req.ContactID)
+	if err != nil {
+		http.Error(w, "failed to add contact", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (h *UserHandler) RemoveContact(w http.ResponseWriter, r *http.Request) {
-	// TODO implement
+	if r.Method != http.MethodDelete {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req struct {
+		UserID    string `json:"user_id"`
+		ContactID string `json:"contact_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	err := h.userService.RemoveContact(r.Context(), req.UserID, req.ContactID)
+	if err != nil {
+		http.Error(w, "failed to remove contact", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
