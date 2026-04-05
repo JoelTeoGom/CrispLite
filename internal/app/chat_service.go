@@ -3,11 +3,19 @@ package app
 import (
 	"crisplite/internal/adapter/inbound/ws"
 	"crisplite/internal/domain"
+	"crisplite/internal/port/outbound"
 )
 
 type ChatService struct {
 	Hub     *ws.Hub
 	Batcher Batcher
+}
+
+func NewChatService(messageRepo outbound.MessageRepository, batcher Batcher) *ChatService {
+	return &ChatService{
+		Hub:     ws.NewHub(),
+		Batcher: batcher,
+	}
 }
 
 func (s *ChatService) Send(msg *domain.Message) error {

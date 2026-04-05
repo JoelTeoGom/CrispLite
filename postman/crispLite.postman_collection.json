@@ -1,0 +1,158 @@
+{
+	"info": {
+		"_postman_id": "crisplite-api-collection",
+		"name": "CrispLite API",
+		"description": "Collection for all CrispLite API endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "contactId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "conversationId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Create User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('userId', jsonData.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"joel\",\n    \"password\": \"secret123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users"]
+						},
+						"description": "Creates a new user. Returns the user ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Contacts",
+			"item": [
+				{
+					"name": "Add Contact",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": \"{{userId}}\",\n    \"contact_id\": \"{{contactId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}/contacts",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "{{userId}}", "contacts"]
+						},
+						"description": "Adds a contact to a user. Returns 201 on success."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Contact",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": \"{{userId}}\",\n    \"contact_id\": \"{{contactId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}/contacts/{{contactId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "{{userId}}", "contacts", "{{contactId}}"]
+						},
+						"description": "Removes a contact from a user. Returns 204 on success."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chat",
+			"item": [
+				{
+					"name": "List Conversations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/{{userId}}/conversations",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "{{userId}}", "conversations"]
+						},
+						"description": "Lists all conversations for a user. (TODO: not yet implemented)"
+					},
+					"response": []
+				},
+				{
+					"name": "Load Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/conversations/{{conversationId}}/messages",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "conversations", "{{conversationId}}", "messages"]
+						},
+						"description": "Loads messages for a conversation. (TODO: not yet implemented)"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
