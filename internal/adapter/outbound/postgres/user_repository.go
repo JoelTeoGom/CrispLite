@@ -42,6 +42,30 @@ func (p *UserRepo) Save(ctx context.Context, user *domain.User) (string, error) 
 	return userID, nil
 }
 
+func (p *UserRepo) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
+	var user domain.User
+	err := p.pool.QueryRow(ctx,
+		"SELECT id, username, password, created_at FROM users WHERE username = $1",
+		username,
+	).Scan(&user.ID, &user.Username, &user.Password, &user.CreatedAt)
+	if err != nil {
+		return nil, domain.ErrUserNotFound
+	}
+	return &user, nil
+}
+
+func (p *UserRepo) GetUserByID(ctx context.Context, userID string) (*domain.User, error) {
+	var user domain.User
+	err := p.pool.QueryRow(ctx,
+		"SELECT id, username, password, created_at FROM users WHERE id = $1",
+		userID,
+	).Scan(&user.ID, &user.Username, &user.Password, &user.CreatedAt)
+	if err != nil {
+		return nil, domain.ErrUserNotFound
+	}
+	return &user, nil
+}
+
 func (p *UserRepo) AddContact(ctx context.Context, userID, contactID string) error {
 	_, err := p.pool.Exec(ctx, "INSERT INTO contacts (user_id, contact_id) VALUES ($1, $2)", userID, contactID)
 	if err != nil {

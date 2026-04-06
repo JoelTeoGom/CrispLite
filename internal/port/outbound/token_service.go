@@ -1,16 +1,14 @@
 package outbound
 
-import "context"
-
-type Claims struct {
-	UserID string
-	Role   string
-}
+import (
+	"context"
+	"crisplite/internal/domain"
+)
 
 type TokenService interface {
-	GenerateAccessToken(userID string, role string) (string, error)
+	GenerateAccessToken(claims *domain.Claims) (string, error)
 	GenerateRefreshToken(length int) string
-	ValidateToken(token string) (*Claims, error)
-	AddClaimsToContext(ctx context.Context, claims *Claims) context.Context
-	ClaimsFromContext(ctx context.Context) (*Claims, bool)
+	ValidateToken(token string) (*domain.Claims, error)
+	AddClaimsToContext(ctx context.Context, claims *domain.Claims) context.Context
+	ClaimsFromContext(ctx context.Context) (*domain.Claims, bool)
 }

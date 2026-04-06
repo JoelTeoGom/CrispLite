@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"crisplite/internal/port/outbound"
+	"crisplite/internal/domain"
 
 	"fmt"
 	"math/rand"
@@ -23,19 +23,19 @@ func NewJWTService(secret string) *JWTService {
 	return &JWTService{secretKey: []byte(secret)}
 }
 
-func (s *JWTService) GenerateAccessToken(userID string, role string) (string, error) {
-	claims := jwt.MapClaims{
-		"user_id": userID,
-		"role":    role,
+func (s *JWTService) GenerateAccessToken(claims *domain.Claims) (string, error) {
+	JWTclaims := jwt.MapClaims{
+		"user_id": claims.UserID,
+		"role":    claims.Role,
 		"exp":     jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
 		"iat":     jwt.NewNumericDate(time.Now()),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTclaims)
 	return token.SignedString(s.secretKey)
 }
 
-func (s *JWTService) ValidateToken(tokenString string) (*outbound.Claims, error) {
+func (s *JWTService) ValidateToken(tokenString string) (*domain.Claims, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected algorithm: %v", t.Header["alg"])
@@ -54,15 +54,15 @@ func (s *JWTService) ValidateToken(tokenString string) (*outbound.Claims, error)
 	userID, _ := mapClaims["user_id"].(string)
 	role, _ := mapClaims["role"].(string)
 
-	return &outbound.Claims{UserID: userID, Role: role}, nil
+	return &domain.Claims{UserID: userID, Role: role}, nil
 }
 
-func (s *JWTService) AddClaimsToContext(ctx context.Context, claims *outbound.Claims) context.Context {
+func (s *JWTService) AddClaimsToContext(ctx context.Context, claims *domain.Claims) context.Context {
 	return context.WithValue(ctx, claimsKey, claims)
 }
 
-func (s *JWTService) ClaimsFromContext(ctx context.Context) (*outbound.Claims, bool) {
-	claims, ok := ctx.Value(claimsKey).(*outbound.Claims)
+func (s *JWTService) ClaimsFromContext(ctx context.Context) (*domain.Claims, bool) {
+	claims, ok := ctx.Value(claimsKey).(*domain.Claims)
 	return claims, ok
 }
 

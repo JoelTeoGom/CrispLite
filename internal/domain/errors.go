@@ -13,4 +13,8 @@ var (
 	ErrUserNotFound         = errors.New("user not found")
 	ErrContactAlreadyExists = errors.New("contact already exists")
 	ErrUnauthorized         = errors.New("unauthorized")
+	ErrInvalidCredentials   = errors.New("invalid credentials")
+	ErrInvalidToken         = errors.New("invalid token")
+	ErrRevokedToken         = errors.New("token has been revoked")
+	ErrExpiredToken         = errors.New("token has expired")
 )
