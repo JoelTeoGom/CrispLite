@@ -7,12 +7,13 @@ import (
 )
 
 type UserService struct {
-	userRepo outbound.UserRepository
-	logger   outbound.Logger
+	userRepo    outbound.UserRepository
+	authService outbound.TokenService
+	logger      outbound.Logger
 }
 
-func NewUserService(userRepo outbound.UserRepository, logger outbound.Logger) *UserService {
-	return &UserService{userRepo: userRepo, logger: logger}
+func NewUserService(userRepo outbound.UserRepository, authService outbound.TokenService, logger outbound.Logger) *UserService {
+	return &UserService{userRepo: userRepo, authService: authService, logger: logger}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user *domain.User) (string, error) {
@@ -25,6 +26,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *domain.User) (string
 		return "", err
 	}
 	user.Password = password
+
 	return s.userRepo.Save(ctx, user)
 }
 

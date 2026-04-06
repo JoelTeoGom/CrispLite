@@ -1,32 +1,27 @@
 package middleware
 
 import (
-	"context"
+	"crisplite/internal/port/outbound"
 	"net/http"
 	"strings"
 )
 
-func Auth(next http.Handler) http.Handler {
+func Auth(tokenService outbound.TokenService, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
-		if token == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		if strings.HasPrefix(token, "Bearer ") {
-			token = token[7:]
-		} else {
+		header := r.Header.Get("Authorization")
+		if header == "" || !strings.HasPrefix(header, "Bearer ") {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		if token != "valid-token" {
+		token := header[7:]
+		claims, err := tokenService.ValidateToken(token)
+		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		r = r.WithContext(context.WithValue(r.Context(), "userID", "12345"))
-
-		next.ServeHTTP(w, r)
+		ctx := tokenService.AddClaimsToContext(r.Context(), claims)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

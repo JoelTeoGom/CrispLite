@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crisplite/internal/adapter/inbound/rest"
+	"crisplite/internal/adapter/outbound/auth"
 	"crisplite/internal/adapter/outbound/config"
 	locallogger "crisplite/internal/adapter/outbound/local_logger"
 	"crisplite/internal/adapter/outbound/postgres"
@@ -55,19 +56,22 @@ func main() {
 	batcher.Start()
 	defer batcher.Stop()
 
+	//AUTH
+	tokenService := auth.NewJWTService(cfg.Server.JWTSecret)
+
 	router := http.NewServeMux()
 
 	//SERVICES
-	userService := app.NewUserService(userRepo, loggerAdapter)
+	userService := app.NewUserService(userRepo, tokenService, loggerAdapter)
 	chatService := app.NewChatService(messageRepo, *batcher, loggerAdapter)
 
 	//HANDLERS
 	userHandler := rest.NewUserHandler(userService, loggerAdapter)
 	chatHandler := rest.NewChatHandler(chatService, loggerAdapter)
 
-	rest.RegisterRoutes(router, userHandler, chatHandler)
+	handler := rest.RegisterRoutes(router, userHandler, chatHandler, loggerAdapter, tokenService)
 
-	if err := http.ListenAndServe(":"+cfg.Server.Port, router); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Server.Port, handler); err != nil {
 		log.Fatalf("server: %v", err)
 	}
 }
