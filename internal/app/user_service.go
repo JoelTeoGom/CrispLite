@@ -14,8 +14,8 @@ type UserService struct {
 	logger      outbound.Logger
 }
 
-func NewUserService(userRepo outbound.UserRepository, authService outbound.TokenService, logger outbound.Logger) *UserService {
-	return &UserService{userRepo: userRepo, authService: authService, logger: logger}
+func NewUserService(userRepo outbound.UserRepository, authRepo outbound.AuthRepository, authService outbound.TokenService, logger outbound.Logger) *UserService {
+	return &UserService{userRepo: userRepo, authRepo: authRepo, authService: authService, logger: logger}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user *domain.User) (string, error) {
@@ -42,11 +42,7 @@ func (s *UserService) Login(ctx context.Context, username, password string) (*do
 		return nil, domain.ErrInvalidCredentials
 	}
 
-	password, err = domain.HashPassword(password)
-	if err != nil {
-		return nil, err
-	}
-	if password != user.Password {
+	if !domain.CheckPassword(user.Password, password) {
 		return nil, domain.ErrInvalidCredentials
 	}
 
@@ -60,11 +56,9 @@ func (s *UserService) Login(ctx context.Context, username, password string) (*do
 	}
 
 	refreshToken := s.authService.GenerateRefreshToken(32)
-	hashedRefreshToken, err := domain.HashPassword(refreshToken)
-
 	domainRefreshToken := &domain.RefreshToken{
 		UserID:      user.ID,
-		HashedToken: hashedRefreshToken,
+		HashedToken: domain.HashToken(refreshToken),
 	}
 
 	err = s.authRepo.SaveRefreshToken(ctx, domainRefreshToken)
@@ -104,13 +98,9 @@ func (s *UserService) RegisterUser(ctx context.Context, user *domain.User) (*dom
 	}
 
 	refreshToken := s.authService.GenerateRefreshToken(32)
-	hashedRefreshToken, err := domain.HashPassword(refreshToken)
-	if err != nil {
-		return nil, err
-	}
 	domainRefreshToken := &domain.RefreshToken{
 		UserID:      userId,
-		HashedToken: hashedRefreshToken,
+		HashedToken: domain.HashToken(refreshToken),
 	}
 
 	err = s.authRepo.SaveRefreshToken(ctx, domainRefreshToken)
@@ -129,10 +119,7 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*d
 		return nil, domain.ErrInvalidToken
 	}
 
-	hashedToken, err := domain.HashPassword(refreshToken)
-	if err != nil {
-		return nil, err
-	}
+	hashedToken := domain.HashToken(refreshToken)
 
 	storedToken, err := s.authRepo.GetRefreshToken(ctx, hashedToken)
 	if err != nil {
@@ -157,14 +144,9 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*d
 	}
 
 	refreshToken = s.authService.GenerateRefreshToken(32)
-	hashedRefreshToken, err := domain.HashPassword(refreshToken)
-	if err != nil {
-		return nil, err
-	}
-
 	domainRefreshToken := &domain.RefreshToken{
 		UserID:      storedToken.UserID,
-		HashedToken: hashedRefreshToken,
+		HashedToken: domain.HashToken(refreshToken),
 	}
 
 	err = s.authRepo.SaveRefreshToken(ctx, domainRefreshToken)
@@ -184,12 +166,9 @@ func (s *UserService) RevokeToken(ctx context.Context, refreshToken string) erro
 		return domain.ErrInvalidToken
 	}
 
-	hashedToken, err := domain.HashPassword(refreshToken)
-	if err != nil {
-		return err
-	}
+	hashedToken := domain.HashToken(refreshToken)
 
-	err = s.authRepo.RevokeRefreshToken(ctx, hashedToken)
+	err := s.authRepo.RevokeRefreshToken(ctx, hashedToken)
 	if err != nil {
 		return err
 	}

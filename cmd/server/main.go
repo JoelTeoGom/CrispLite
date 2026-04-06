@@ -57,6 +57,7 @@ func main() {
 	//REPOS
 	messageRepo := postgres.NewMessageRepo(pool, loggerAdapter)
 	userRepo := postgres.NewUserRepo(pool, loggerAdapter)
+	authRepo := postgres.NewAuthRepo(pool, loggerAdapter)
 
 	//APP
 	msgChannel := make(chan domain.Message, cfg.Batcher.Size)
@@ -71,7 +72,7 @@ func main() {
 	router := http.NewServeMux()
 
 	//SERVICES
-	userService := app.NewUserService(userRepo, tokenService, loggerAdapter)
+	userService := app.NewUserService(userRepo, authRepo, tokenService, loggerAdapter)
 	chatService := app.NewChatService(messageRepo, *batcher, loggerAdapter)
 
 	//HANDLERS

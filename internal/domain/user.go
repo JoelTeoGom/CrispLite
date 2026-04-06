@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -38,4 +40,9 @@ func HashPassword(password string) (string, error) {
 
 func CheckPassword(hashed, password string) bool {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password)) == nil
+}
+
+func HashToken(token string) string {
+	h := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(h[:])
 }
