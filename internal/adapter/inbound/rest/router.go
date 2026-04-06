@@ -4,9 +4,14 @@ import (
 	"crisplite/internal/adapter/inbound/rest/middleware"
 	"crisplite/internal/port/outbound"
 	"net/http"
+
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func RegisterRoutes(mux *http.ServeMux, ah *AuthHandler, uh *UserHandler, ch *ChatHandler, logger outbound.Logger, tokenService outbound.TokenService) http.Handler {
+	// Swagger
+	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
+
 	// Public routes (no auth)
 	mux.HandleFunc("POST /api/auth/login", ah.Login)
 	mux.HandleFunc("POST /api/auth/register", ah.Register)

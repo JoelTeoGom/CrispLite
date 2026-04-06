@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crisplite/internal/adapter/inbound/rest"
+	_ "crisplite/docs"
 	"crisplite/internal/adapter/outbound/auth"
 	"crisplite/internal/adapter/outbound/config"
 	locallogger "crisplite/internal/adapter/outbound/local_logger"
@@ -14,6 +15,14 @@ import (
 	"net/http"
 )
 
+// @title           CrispLite API
+// @version         1.0
+// @description     CrispLite chat application API
+// @host            localhost:8080
+// @BasePath        /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	ctx := context.Background()
 
@@ -66,10 +75,11 @@ func main() {
 	chatService := app.NewChatService(messageRepo, *batcher, loggerAdapter)
 
 	//HANDLERS
+	authHandler := rest.NewAuthHandler(userService, loggerAdapter)
 	userHandler := rest.NewUserHandler(userService, loggerAdapter)
 	chatHandler := rest.NewChatHandler(chatService, loggerAdapter)
 
-	handler := rest.RegisterRoutes(router, userHandler, chatHandler, loggerAdapter, tokenService)
+	handler := rest.RegisterRoutes(router, authHandler, userHandler, chatHandler, loggerAdapter, tokenService)
 
 	if err := http.ListenAndServe(":"+cfg.Server.Port, handler); err != nil {
 		log.Fatalf("server: %v", err)

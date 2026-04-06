@@ -1,0 +1,302 @@
+basePath: /
+definitions:
+  rest.RegisterRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  rest.RegisterResponse:
+    properties:
+      jwt_token:
+        type: string
+      refresh_token:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: CrispLite chat application API
+  title: CrispLite API
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and returns access and refresh tokens
+      parameters:
+      - description: Login request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rest.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rest.RegisterResponse'
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "500":
+          description: failed to login user
+          schema:
+            type: string
+      summary: Login user
+      tags:
+      - auth
+  /api/auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Revokes the refresh token to log the user out
+      parameters:
+      - description: Logout request
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            refresh_token:
+              type: string
+          type: object
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "500":
+          description: failed to revoke token
+          schema:
+            type: string
+      summary: Logout user
+      tags:
+      - auth
+  /api/auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Returns new access and refresh tokens given a valid refresh token
+      parameters:
+      - description: Refresh token request
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            refresh_token:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rest.RegisterResponse'
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "500":
+          description: failed to refresh token
+          schema:
+            type: string
+      summary: Refresh access token
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user and returns access and refresh tokens
+      parameters:
+      - description: Register request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/rest.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/rest.RegisterResponse'
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "500":
+          description: failed to register user
+          schema:
+            type: string
+      summary: Register a new user
+      tags:
+      - auth
+  /api/auth/revoke:
+    post:
+      consumes:
+      - application/json
+      description: Marks a refresh token as revoked
+      parameters:
+      - description: Revoke token request
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            refresh_token:
+              type: string
+          type: object
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "500":
+          description: failed to revoke token
+          schema:
+            type: string
+      summary: Revoke a refresh token
+      tags:
+      - auth
+  /api/conversations/{id}/messages:
+    get:
+      description: Returns messages for a conversation
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Load messages
+      tags:
+      - chat
+  /api/users/{id}/contacts:
+    post:
+      consumes:
+      - application/json
+      description: Adds a contact to the authenticated user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Contact to add
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            contact_id:
+              type: string
+          type: object
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: failed to add contact
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Add a contact
+      tags:
+      - contacts
+  /api/users/{id}/contacts/{contactId}:
+    delete:
+      description: Removes a contact from the authenticated user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Contact ID
+        in: path
+        name: contactId
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: invalid request body
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: failed to remove contact
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Remove a contact
+      tags:
+      - contacts
+  /api/users/{id}/conversations:
+    get:
+      description: Returns all conversations for the authenticated user
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: List conversations
+      tags:
+      - chat
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

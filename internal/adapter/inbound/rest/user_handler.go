@@ -21,6 +21,19 @@ func NewUserHandler(us inbound.UserService, logger outbound.Logger) *UserHandler
 	return &UserHandler{userService: us, logger: logger}
 }
 
+// AddContact godoc
+// @Summary      Add a contact
+// @Description  Adds a contact to the authenticated user
+// @Tags         contacts
+// @Accept       json
+// @Security     BearerAuth
+// @Param        id    path      string                        true  "User ID"
+// @Param        body  body      object{contact_id=string}     true  "Contact to add"
+// @Success      201
+// @Failure      400   {string}  string  "invalid request body"
+// @Failure      401   {string}  string  "Unauthorized"
+// @Failure      500   {string}  string  "failed to add contact"
+// @Router       /api/users/{id}/contacts [post]
 func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -44,6 +57,18 @@ func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// RemoveContact godoc
+// @Summary      Remove a contact
+// @Description  Removes a contact from the authenticated user
+// @Tags         contacts
+// @Security     BearerAuth
+// @Param        id         path      string  true  "User ID"
+// @Param        contactId  path      string  true  "Contact ID"
+// @Success      204
+// @Failure      400   {string}  string  "invalid request body"
+// @Failure      401   {string}  string  "Unauthorized"
+// @Failure      500   {string}  string  "failed to remove contact"
+// @Router       /api/users/{id}/contacts/{contactId} [delete]
 func (h *UserHandler) RemoveContact(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)

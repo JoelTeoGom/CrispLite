@@ -28,6 +28,17 @@ type RegisterResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// Register godoc
+// @Summary      Register a new user
+// @Description  Creates a new user and returns access and refresh tokens
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      RegisterRequest   true  "Register request"
+// @Success      200   {object}  RegisterResponse
+// @Failure      400   {string}  string  "invalid request body"
+// @Failure      500   {string}  string  "failed to register user"
+// @Router       /api/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -64,6 +75,17 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Login godoc
+// @Summary      Login user
+// @Description  Authenticates a user and returns access and refresh tokens
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      RegisterRequest   true  "Login request"
+// @Success      200   {object}  RegisterResponse
+// @Failure      400   {string}  string  "invalid request body"
+// @Failure      500   {string}  string  "failed to login user"
+// @Router       /api/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -100,6 +122,17 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// RefreshToken godoc
+// @Summary      Refresh access token
+// @Description  Returns new access and refresh tokens given a valid refresh token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      object{refresh_token=string}  true  "Refresh token request"
+// @Success      200   {object}  RegisterResponse
+// @Failure      400   {string}  string  "invalid request body"
+// @Failure      500   {string}  string  "failed to refresh token"
+// @Router       /api/auth/refresh [post]
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -135,6 +168,16 @@ func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Logout godoc
+// @Summary      Logout user
+// @Description  Revokes the refresh token to log the user out
+// @Tags         auth
+// @Accept       json
+// @Param        body  body      object{refresh_token=string}  true  "Logout request"
+// @Success      204
+// @Failure      400   {string}  string  "invalid request body"
+// @Failure      500   {string}  string  "failed to revoke token"
+// @Router       /api/auth/logout [post]
 func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
@@ -158,6 +201,16 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// RevokeToken godoc
+// @Summary      Revoke a refresh token
+// @Description  Marks a refresh token as revoked
+// @Tags         auth
+// @Accept       json
+// @Param        body  body      object{refresh_token=string}  true  "Revoke token request"
+// @Success      204
+// @Failure      400   {string}  string  "invalid request body"
+// @Failure      500   {string}  string  "failed to revoke token"
+// @Router       /api/auth/revoke [post]
 func (h *AuthHandler) RevokeToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
