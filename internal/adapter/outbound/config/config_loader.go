@@ -27,6 +27,7 @@ func (c *ConfigLoader) Load() (*domain.Config, error) {
 	maxConnIdleMin, _ := strconv.Atoi(getEnv("DB_MAX_CONN_IDLE_MIN", "5"))
 
 	return &domain.Config{
+		Env: parseEnv(getEnv("APP_ENV", "local")),
 		Database: domain.DatabaseConfig{
 			URL:         getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/crisplite"),
 			MaxConns:    maxConns,
@@ -42,6 +43,17 @@ func (c *ConfigLoader) Load() (*domain.Config, error) {
 			Interval: time.Duration(intervalMs) * time.Millisecond,
 		},
 	}, nil
+}
+
+func parseEnv(value string) domain.Env {
+	switch strings.ToLower(value) {
+	case "development":
+		return domain.EnvDevelopment
+	case "production":
+		return domain.EnvProduction
+	default:
+		return domain.EnvLocal
+	}
 }
 
 func getEnv(key, fallback string) string {

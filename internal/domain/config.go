@@ -2,7 +2,16 @@ package domain
 
 import "time"
 
+type Env string
+
+const (
+	EnvLocal       Env = "local"
+	EnvDevelopment Env = "development"
+	EnvProduction  Env = "production"
+)
+
 type Config struct {
+	Env      Env
 	Database DatabaseConfig
 	Server   ServerConfig
 	Batcher  BatcherConfig

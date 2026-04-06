@@ -4,9 +4,11 @@ import (
 	"context"
 	"crisplite/internal/adapter/inbound/rest"
 	"crisplite/internal/adapter/outbound/config"
+	locallogger "crisplite/internal/adapter/outbound/local_logger"
 	"crisplite/internal/adapter/outbound/postgres"
 	"crisplite/internal/app"
 	"crisplite/internal/domain"
+	"crisplite/internal/port/outbound"
 	"log"
 	"net/http"
 )
@@ -25,8 +27,18 @@ func main() {
 		log.Fatalf("config: %v", err)
 	}
 
+	log.Printf("Starting server in %s environment", cfg.Env)
+
+	//LOGGING
+	var loggerAdapter outbound.Logger
+	if cfg.Env == domain.EnvLocal {
+		loggerAdapter = locallogger.NewLocalLogger()
+	} else {
+		loggerAdapter = locallogger.NewLocalLogger() //TODO: replace with real logger
+	}
+
 	//DB
-	pool, err := postgres.NewPool(ctx, cfg.Database)
+	pool, err := postgres.NewPool(ctx, cfg.Database, loggerAdapter)
 	if err != nil {
 		log.Fatalf("postgres: %v", err)
 	}
