@@ -8,10 +8,11 @@ import (
 
 type UserService struct {
 	userRepo outbound.UserRepository
+	logger   outbound.Logger
 }
 
-func NewUserService(userRepo outbound.UserRepository) *UserService {
-	return &UserService{userRepo: userRepo}
+func NewUserService(userRepo outbound.UserRepository, logger outbound.Logger) *UserService {
+	return &UserService{userRepo: userRepo, logger: logger}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user *domain.User) (string, error) {

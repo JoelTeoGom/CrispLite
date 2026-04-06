@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"runtime/debug"
 )
 
 type LocalLogger struct{}
@@ -23,12 +22,12 @@ func (l *LocalLogger) Warning(ctx context.Context, msg string) {
 
 func (l *LocalLogger) Error(ctx context.Context, err error) {
 	log.Printf("[ERROR] %v", err)
-	debug.PrintStack()
+	//debug.PrintStack()
 }
 
 func (l *LocalLogger) ErrorWithVar(ctx context.Context, err error, data map[string]any) {
 	log.Printf("[ERROR] %v %s", err, formatData(data))
-	debug.PrintStack()
+	//debug.PrintStack()
 }
 
 func (l *LocalLogger) Debug(ctx context.Context, msg string) {

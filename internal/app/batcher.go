@@ -12,15 +12,17 @@ type Batcher struct {
 	processor outbound.MessageRepository
 	messages  <-chan domain.Message
 	done      chan struct{}
+	logger    outbound.Logger
 }
 
-func NewBatcher(msgs <-chan domain.Message, size int, interval time.Duration, proc outbound.MessageRepository) *Batcher {
+func NewBatcher(msgs <-chan domain.Message, size int, interval time.Duration, proc outbound.MessageRepository, logger outbound.Logger) *Batcher {
 	return &Batcher{
 		batchSize: size,
 		interval:  interval,
 		processor: proc,
 		messages:  msgs,
 		done:      make(chan struct{}),
+		logger:    logger,
 	}
 }
 

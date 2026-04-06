@@ -3,12 +3,14 @@ package rest
 import (
 	"crisplite/internal/domain"
 	"crisplite/internal/port/inbound"
+	"crisplite/internal/port/outbound"
 	"encoding/json"
 	"net/http"
 )
 
 type UserHandler struct {
 	userService inbound.UserService
+	logger      outbound.Logger
 }
 
 type CreateUserRequest struct {
@@ -16,8 +18,8 @@ type CreateUserRequest struct {
 	Password string `json:"password"`
 }
 
-func NewUserHandler(us inbound.UserService) *UserHandler {
-	return &UserHandler{userService: us}
+func NewUserHandler(us inbound.UserService, logger outbound.Logger) *UserHandler {
+	return &UserHandler{userService: us, logger: logger}
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {

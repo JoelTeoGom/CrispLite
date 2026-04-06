@@ -9,12 +9,14 @@ import (
 type ChatService struct {
 	Hub     *ws.Hub
 	Batcher Batcher
+	logger  outbound.Logger
 }
 
-func NewChatService(messageRepo outbound.MessageRepository, batcher Batcher) *ChatService {
+func NewChatService(messageRepo outbound.MessageRepository, batcher Batcher, logger outbound.Logger) *ChatService {
 	return &ChatService{
 		Hub:     ws.NewHub(),
 		Batcher: batcher,
+		logger:  logger,
 	}
 }
 

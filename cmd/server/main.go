@@ -45,25 +45,25 @@ func main() {
 	defer pool.Close()
 
 	//REPOS
-	messageRepo := postgres.NewMessageRepo(pool)
-	userRepo := postgres.NewUserRepo(pool)
+	messageRepo := postgres.NewMessageRepo(pool, loggerAdapter)
+	userRepo := postgres.NewUserRepo(pool, loggerAdapter)
 
 	//APP
 	msgChannel := make(chan domain.Message, cfg.Batcher.Size)
 	defer close(msgChannel)
-	batcher := app.NewBatcher(msgChannel, cfg.Batcher.Size, cfg.Batcher.Interval, messageRepo)
+	batcher := app.NewBatcher(msgChannel, cfg.Batcher.Size, cfg.Batcher.Interval, messageRepo, loggerAdapter)
 	batcher.Start()
 	defer batcher.Stop()
 
 	router := http.NewServeMux()
 
 	//SERVICES
-	userService := app.NewUserService(userRepo)
-	chatService := app.NewChatService(messageRepo, *batcher)
+	userService := app.NewUserService(userRepo, loggerAdapter)
+	chatService := app.NewChatService(messageRepo, *batcher, loggerAdapter)
 
 	//HANDLERS
-	userHandler := rest.NewUserHandler(userService)
-	chatHandler := rest.NewChatHandler(chatService)
+	userHandler := rest.NewUserHandler(userService, loggerAdapter)
+	chatHandler := rest.NewChatHandler(chatService, loggerAdapter)
 
 	rest.RegisterRoutes(router, userHandler, chatHandler)
 

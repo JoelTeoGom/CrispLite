@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"crisplite/internal/domain"
+	"crisplite/internal/port/outbound"
 	"errors"
 
 	"github.com/google/uuid"
@@ -11,11 +12,12 @@ import (
 )
 
 type UserRepo struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	logger outbound.Logger
 }
 
-func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
-	return &UserRepo{pool: pool}
+func NewUserRepo(pool *pgxpool.Pool, logger outbound.Logger) *UserRepo {
+	return &UserRepo{pool: pool, logger: logger}
 }
 
 func (p *UserRepo) Save(ctx context.Context, user *domain.User) (string, error) {

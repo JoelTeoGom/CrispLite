@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	locallogger "crisplite/internal/adapter/outbound/local_logger"
 	"crisplite/internal/domain"
 	"errors"
 	"testing"
@@ -35,7 +36,7 @@ func cleanupUsers(t *testing.T, pool *pgxpool.Pool, userIDs ...string) {
 
 func TestSave_Success(t *testing.T) {
 	pool := setupTestPool(t)
-	repo := NewUserRepo(pool)
+	repo := NewUserRepo(pool, locallogger.NewLocalLogger())
 	ctx := context.Background()
 
 	user := &domain.User{Username: "testuser_save", Password: "hashedpass123"}
@@ -60,7 +61,7 @@ func TestSave_Success(t *testing.T) {
 
 func TestSave_DuplicateUsername(t *testing.T) {
 	pool := setupTestPool(t)
-	repo := NewUserRepo(pool)
+	repo := NewUserRepo(pool, locallogger.NewLocalLogger())
 	ctx := context.Background()
 
 	user := &domain.User{Username: "testuser_dup", Password: "hashedpass123"}
@@ -78,7 +79,7 @@ func TestSave_DuplicateUsername(t *testing.T) {
 
 func TestAddContact_Success(t *testing.T) {
 	pool := setupTestPool(t)
-	repo := NewUserRepo(pool)
+	repo := NewUserRepo(pool, locallogger.NewLocalLogger())
 	ctx := context.Background()
 
 	u1, _ := repo.Save(ctx, &domain.User{Username: "contact_user1", Password: "pass"})
@@ -99,7 +100,7 @@ func TestAddContact_Success(t *testing.T) {
 
 func TestAddContact_DuplicateContact(t *testing.T) {
 	pool := setupTestPool(t)
-	repo := NewUserRepo(pool)
+	repo := NewUserRepo(pool, locallogger.NewLocalLogger())
 	ctx := context.Background()
 
 	u1, _ := repo.Save(ctx, &domain.User{Username: "dup_contact_u1", Password: "pass"})
@@ -115,7 +116,7 @@ func TestAddContact_DuplicateContact(t *testing.T) {
 
 func TestAddContact_UserNotFound(t *testing.T) {
 	pool := setupTestPool(t)
-	repo := NewUserRepo(pool)
+	repo := NewUserRepo(pool, locallogger.NewLocalLogger())
 	ctx := context.Background()
 
 	fakeUUID1 := "00000000-0000-0000-0000-000000000001"
@@ -128,7 +129,7 @@ func TestAddContact_UserNotFound(t *testing.T) {
 
 func TestRemoveContact_Success(t *testing.T) {
 	pool := setupTestPool(t)
-	repo := NewUserRepo(pool)
+	repo := NewUserRepo(pool, locallogger.NewLocalLogger())
 	ctx := context.Background()
 
 	u1, _ := repo.Save(ctx, &domain.User{Username: "rm_contact_u1", Password: "pass"})
