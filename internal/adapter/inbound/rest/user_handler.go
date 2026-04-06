@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"crisplite/internal/domain"
 	"crisplite/internal/port/inbound"
 	"crisplite/internal/port/outbound"
 	"encoding/json"
@@ -22,34 +21,6 @@ func NewUserHandler(us inbound.UserService, logger outbound.Logger) *UserHandler
 	return &UserHandler{userService: us, logger: logger}
 }
 
-func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var req CreateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	var domainUser = &domain.User{
-		Username: req.UserName,
-		Password: req.Password,
-	}
-	userID, err := h.userService.CreateUser(r.Context(), domainUser)
-	if err != nil {
-		http.Error(w, "failed to create user", http.StatusInternalServerError)
-		return
-	}
-	payload := map[string]string{"id": userID}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(payload)
-
-}
-
 func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -57,7 +28,6 @@ func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		UserID    string `json:"user_id"`
 		ContactID string `json:"contact_id"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -66,7 +36,7 @@ func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := h.userService.AddContact(r.Context(), req.UserID, req.ContactID)
+	err := h.userService.AddContact(r.Context(), req.ContactID)
 	if err != nil {
 		http.Error(w, "failed to add contact", http.StatusInternalServerError)
 		return
@@ -90,7 +60,7 @@ func (h *UserHandler) RemoveContact(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := h.userService.RemoveContact(r.Context(), req.UserID, req.ContactID)
+	err := h.userService.RemoveContact(r.Context(), req.ContactID)
 	if err != nil {
 		http.Error(w, "failed to remove contact", http.StatusInternalServerError)
 		return
