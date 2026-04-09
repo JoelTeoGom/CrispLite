@@ -26,8 +26,9 @@ type DatabaseConfig struct {
 }
 
 type ServerConfig struct {
-	Port      string
-	JWTSecret string
+	Port          string
+	JWTSecret     string
+	AllowedOrigin string
 }
 
 type BatcherConfig struct {

@@ -76,11 +76,11 @@ func main() {
 	chatService := app.NewChatService(messageRepo, *batcher, loggerAdapter)
 
 	//HANDLERS
-	authHandler := rest.NewAuthHandler(userService, loggerAdapter)
+	authHandler := rest.NewAuthHandler(userService, loggerAdapter, cfg.Env)
 	userHandler := rest.NewUserHandler(userService, loggerAdapter)
 	chatHandler := rest.NewChatHandler(chatService, loggerAdapter)
 
-	handler := rest.RegisterRoutes(router, authHandler, userHandler, chatHandler, loggerAdapter, tokenService)
+	handler := rest.RegisterRoutes(router, authHandler, userHandler, chatHandler, loggerAdapter, tokenService, cfg.Server.AllowedOrigin)
 
 	if err := http.ListenAndServe(":"+cfg.Server.Port, handler); err != nil {
 		log.Fatalf("server: %v", err)

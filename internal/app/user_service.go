@@ -121,6 +121,7 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (*d
 
 	hashedToken := domain.HashToken(refreshToken)
 
+	s.logger.Info(ctx, hashedToken)
 	storedToken, err := s.authRepo.GetRefreshToken(ctx, hashedToken)
 	if err != nil {
 		return nil, domain.ErrInvalidToken

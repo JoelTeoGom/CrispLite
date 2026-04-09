@@ -36,8 +36,9 @@ func (c *ConfigLoader) Load() (*domain.Config, error) {
 			MaxConnIdle: time.Duration(maxConnIdleMin) * time.Minute,
 		},
 		Server: domain.ServerConfig{
-			Port:      getEnv("SERVER_PORT", "8080"),
-			JWTSecret: getEnv("JWT_SECRET", ""),
+			Port:          getEnv("SERVER_PORT", "8080"),
+			JWTSecret:     getEnv("JWT_SECRET", ""),
+			AllowedOrigin: getEnv("ALLOWED_ORIGIN", "http://localhost:5173"),
 		},
 		Batcher: domain.BatcherConfig{
 			Size:     batchSize,

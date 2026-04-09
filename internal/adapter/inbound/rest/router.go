@@ -8,7 +8,7 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
-func RegisterRoutes(mux *http.ServeMux, ah *AuthHandler, uh *UserHandler, ch *ChatHandler, logger outbound.Logger, tokenService outbound.TokenService) http.Handler {
+func RegisterRoutes(mux *http.ServeMux, ah *AuthHandler, uh *UserHandler, ch *ChatHandler, logger outbound.Logger, tokenService outbound.TokenService, allowedOrigin string) http.Handler {
 	// Swagger
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
 
@@ -28,6 +28,6 @@ func RegisterRoutes(mux *http.ServeMux, ah *AuthHandler, uh *UserHandler, ch *Ch
 
 	mux.Handle("/api/", middleware.Auth(tokenService, protected))
 
-	// Logger wraps everything
-	return middleware.Logger(logger, mux)
+	// CORS + Logger wraps everything
+	return middleware.CORS(allowedOrigin, middleware.Logger(logger, mux))
 }
