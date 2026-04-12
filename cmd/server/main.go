@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"crisplite/internal/adapter/inbound/rest"
 	_ "crisplite/docs"
+	"crisplite/internal/adapter/inbound/rest"
 	"crisplite/internal/adapter/outbound/auth"
 	"crisplite/internal/adapter/outbound/config"
 	locallogger "crisplite/internal/adapter/outbound/local_logger"
@@ -53,6 +53,8 @@ func main() {
 		log.Fatalf("postgres: %v", err)
 	}
 	defer pool.Close()
+
+	//REDIS
 
 	//REPOS
 	messageRepo := postgres.NewMessageRepo(pool, loggerAdapter)

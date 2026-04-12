@@ -15,14 +15,15 @@ type Config struct {
 	Database DatabaseConfig
 	Server   ServerConfig
 	Batcher  BatcherConfig
+	Redis    RedisConfig
 }
 
 type DatabaseConfig struct {
-	URL          string
-	MaxConns     int
-	MinConns     int
-	MaxConnLife  time.Duration
-	MaxConnIdle  time.Duration
+	URL         string
+	MaxConns    int
+	MinConns    int
+	MaxConnLife time.Duration
+	MaxConnIdle time.Duration
 }
 
 type ServerConfig struct {
@@ -34,4 +35,8 @@ type ServerConfig struct {
 type BatcherConfig struct {
 	Size     int
 	Interval time.Duration
+}
+
+type RedisConfig struct {
+	URI string
 }

@@ -1,4 +1,4 @@
-package locallogger
+package logger
 
 import (
 	"context"

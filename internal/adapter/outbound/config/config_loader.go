@@ -44,6 +44,9 @@ func (c *ConfigLoader) Load() (*domain.Config, error) {
 			Size:     batchSize,
 			Interval: time.Duration(intervalMs) * time.Millisecond,
 		},
+		Redis: domain.RedisConfig{
+			URI: getEnv("REDIS_URI", "redis://localhost:6379/1"),
+		},
 	}, nil
 }
 

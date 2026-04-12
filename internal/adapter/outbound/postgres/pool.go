@@ -55,3 +55,9 @@ func NewPool(ctx context.Context, dbCfg domain.DatabaseConfig, logger outbound.L
 func GetPool() *pgxpool.Pool {
 	return pool
 }
+
+func Close() {
+	if pool != nil {
+		pool.Close()
+	}
+}
