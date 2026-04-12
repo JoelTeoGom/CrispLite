@@ -21,6 +21,7 @@ func RegisterRoutes(mux *http.ServeMux, ah *AuthHandler, uh *UserHandler, ch *Ch
 
 	// Protected routes (auth required)
 	protected := http.NewServeMux()
+	protected.HandleFunc("GET /api/users/search", uh.SearchUsers)
 	protected.HandleFunc("POST /api/contacts", uh.AddContact)
 	protected.HandleFunc("DELETE /api/contacts/{contactId}", uh.RemoveContact)
 	protected.HandleFunc("GET /api/conversations", ch.ListConversations)

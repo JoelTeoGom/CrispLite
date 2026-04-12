@@ -180,6 +180,20 @@ func (s *UserService) AddContact(ctx context.Context, userID, contactID string) 
 	return s.userRepo.AddContact(ctx, userID, contactID)
 }
 
+func (s *UserService) SearchUsers(ctx context.Context, excludeUserID, query string, limit, offset int) ([]domain.UserSummary, error) {
+	users, err := s.userRepo.SearchUsers(ctx, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	filtered := make([]domain.UserSummary, 0, len(users))
+	for _, u := range users {
+		if u.ID != excludeUserID {
+			filtered = append(filtered, u)
+		}
+	}
+	return filtered, nil
+}
+
 func (s *UserService) RemoveContact(ctx context.Context, userID, contactID string) error {
 	return s.userRepo.RemoveContact(ctx, userID, contactID)
 }

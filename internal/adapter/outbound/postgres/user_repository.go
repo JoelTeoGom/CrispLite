@@ -83,6 +83,30 @@ func (p *UserRepo) AddContact(ctx context.Context, userID, contactID string) err
 	return nil
 }
 
+func (p *UserRepo) SearchUsers(ctx context.Context, query string, limit, offset int) ([]domain.UserSummary, error) {
+	rows, err := p.pool.Query(ctx,
+		"SELECT id, username FROM users WHERE username ILIKE $1 ORDER BY username LIMIT $2 OFFSET $3",
+		"%"+query+"%", limit, offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []domain.UserSummary
+	for rows.Next() {
+		var u domain.UserSummary
+		if err := rows.Scan(&u.ID, &u.Username); err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+	if users == nil {
+		users = []domain.UserSummary{}
+	}
+	return users, nil
+}
+
 func (p *UserRepo) RemoveContact(ctx context.Context, userID, contactID string) error {
 	_, err := p.pool.Exec(ctx, "DELETE FROM contacts WHERE user_id = $1 AND contact_id = $2", userID, contactID)
 	if err != nil {

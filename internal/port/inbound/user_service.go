@@ -12,4 +12,5 @@ type UserService interface {
 	RevokeToken(ctx context.Context, refreshToken string) error
 	AddContact(ctx context.Context, userID, contactID string) error
 	RemoveContact(ctx context.Context, userID, contactID string) error
+	SearchUsers(ctx context.Context, excludeUserID, query string, limit, offset int) ([]domain.UserSummary, error)
 }

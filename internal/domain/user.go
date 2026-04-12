@@ -15,6 +15,11 @@ type User struct {
 	CreatedAt time.Time
 }
 
+type UserSummary struct {
+	ID       string `json:"id"`
+	Username string `json:"username"`
+}
+
 func (u *User) Validate() error {
 	switch {
 	case u.Username == "":

@@ -5,6 +5,7 @@ import (
 	"crisplite/internal/port/outbound"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 type UserHandler struct {
@@ -61,6 +62,57 @@ func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+// SearchUsers godoc
+// @Summary      Search users by username
+// @Description  Returns users matching the query (min 3 chars). Excludes the authenticated user.
+// @Tags         users
+// @Produce      json
+// @Security     BearerAuth
+// @Param        q       query     string  true   "Search text (min 3 chars)"
+// @Param        limit   query     int     false  "Max results (default 20)"
+// @Param        offset  query     int     false  "Offset (default 0)"
+// @Success      200     {array}   domain.UserSummary
+// @Failure      400     {string}  string  "search query too short"
+// @Failure      401     {string}  string  "Unauthorized"
+// @Failure      500     {string}  string  "failed to search users"
+// @Router       /api/users/search [get]
+func (h *UserHandler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	claims, ok := h.tokenService.ClaimsFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	query := r.URL.Query().Get("q")
+	if len(query) < 3 {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("[]"))
+		return
+	}
+
+	limit := 20
+	offset := 0
+	if v := r.URL.Query().Get("limit"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			limit = n
+		}
+	}
+	if v := r.URL.Query().Get("offset"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n >= 0 {
+			offset = n
+		}
+	}
+
+	users, err := h.userService.SearchUsers(r.Context(), claims.UserID, query, limit, offset)
+	if err != nil {
+		http.Error(w, "failed to search users", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
 }
 
 // RemoveContact godoc
