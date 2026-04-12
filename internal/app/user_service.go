@@ -176,26 +176,10 @@ func (s *UserService) RevokeToken(ctx context.Context, refreshToken string) erro
 	return nil
 }
 
-func (s *UserService) AddContact(ctx context.Context, contactID string) error {
-	claims, ok := s.authService.ClaimsFromContext(ctx)
-	if !ok {
-		return domain.ErrUnauthorized
-	}
-	userID := claims.UserID
-	if err := s.userRepo.AddContact(ctx, userID, contactID); err != nil {
-		return err
-	}
-	return nil
+func (s *UserService) AddContact(ctx context.Context, userID, contactID string) error {
+	return s.userRepo.AddContact(ctx, userID, contactID)
 }
 
-func (s *UserService) RemoveContact(ctx context.Context, contactID string) error {
-	claims, ok := s.authService.ClaimsFromContext(ctx)
-	if !ok {
-		return domain.ErrUnauthorized
-	}
-	userID := claims.UserID
-	if err := s.userRepo.RemoveContact(ctx, userID, contactID); err != nil {
-		return err
-	}
-	return nil
+func (s *UserService) RemoveContact(ctx context.Context, userID, contactID string) error {
+	return s.userRepo.RemoveContact(ctx, userID, contactID)
 }

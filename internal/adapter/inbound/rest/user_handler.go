@@ -8,8 +8,9 @@ import (
 )
 
 type UserHandler struct {
-	userService inbound.UserService
-	logger      outbound.Logger
+	userService  inbound.UserService
+	tokenService outbound.TokenService
+	logger       outbound.Logger
 }
 
 type CreateUserRequest struct {
@@ -17,8 +18,8 @@ type CreateUserRequest struct {
 	Password string `json:"password"`
 }
 
-func NewUserHandler(us inbound.UserService, logger outbound.Logger) *UserHandler {
-	return &UserHandler{userService: us, logger: logger}
+func NewUserHandler(us inbound.UserService, ts outbound.TokenService, logger outbound.Logger) *UserHandler {
+	return &UserHandler{userService: us, tokenService: ts, logger: logger}
 }
 
 // AddContact godoc
@@ -27,16 +28,21 @@ func NewUserHandler(us inbound.UserService, logger outbound.Logger) *UserHandler
 // @Tags         contacts
 // @Accept       json
 // @Security     BearerAuth
-// @Param        id    path      string                        true  "User ID"
 // @Param        body  body      object{contact_id=string}     true  "Contact to add"
 // @Success      201
 // @Failure      400   {string}  string  "invalid request body"
 // @Failure      401   {string}  string  "Unauthorized"
 // @Failure      500   {string}  string  "failed to add contact"
-// @Router       /api/users/{id}/contacts [post]
+// @Router       /api/contacts [post]
 func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	claims, ok := h.tokenService.ClaimsFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
@@ -49,7 +55,7 @@ func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	err := h.userService.AddContact(r.Context(), req.ContactID)
+	err := h.userService.AddContact(r.Context(), claims.UserID, req.ContactID)
 	if err != nil {
 		http.Error(w, "failed to add contact", http.StatusInternalServerError)
 		return
@@ -62,30 +68,30 @@ func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 // @Description  Removes a contact from the authenticated user
 // @Tags         contacts
 // @Security     BearerAuth
-// @Param        id         path      string  true  "User ID"
 // @Param        contactId  path      string  true  "Contact ID"
 // @Success      204
-// @Failure      400   {string}  string  "invalid request body"
 // @Failure      401   {string}  string  "Unauthorized"
 // @Failure      500   {string}  string  "failed to remove contact"
-// @Router       /api/users/{id}/contacts/{contactId} [delete]
+// @Router       /api/contacts/{contactId} [delete]
 func (h *UserHandler) RemoveContact(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var req struct {
-		UserID    string `json:"user_id"`
-		ContactID string `json:"contact_id"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+	claims, ok := h.tokenService.ClaimsFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	defer r.Body.Close()
 
-	err := h.userService.RemoveContact(r.Context(), req.ContactID)
+	contactID := r.PathValue("contactId")
+	if contactID == "" {
+		http.Error(w, "missing contact id", http.StatusBadRequest)
+		return
+	}
+
+	err := h.userService.RemoveContact(r.Context(), claims.UserID, contactID)
 	if err != nil {
 		http.Error(w, "failed to remove contact", http.StatusInternalServerError)
 		return

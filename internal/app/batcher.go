@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"crisplite/internal/domain"
 	"crisplite/internal/port/outbound"
 	"time"
@@ -26,21 +27,25 @@ func NewBatcher(msgs <-chan domain.Message, size int, interval time.Duration, pr
 	}
 }
 
-func (b *Batcher) Start() {
-	go b.run()
+func (b *Batcher) Start(ctx context.Context) {
+	go b.run(ctx)
 }
 
 func (b *Batcher) Stop() {
 	defer close(b.done)
 }
 
-func (b *Batcher) run() {
+func (b *Batcher) run(ctx context.Context) {
 	ticker := time.NewTicker(b.interval)
 	defer ticker.Stop()
 
 	var batch []*domain.Message
 	for {
 		select {
+		case <-ctx.Done():
+			if len(batch) > 0 {
+				b.processor.BulkMessageInsert(batch)
+			}
 		case <-b.done:
 			if len(batch) > 0 {
 				b.processor.BulkMessageInsert(batch)

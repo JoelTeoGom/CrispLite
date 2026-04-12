@@ -10,6 +10,6 @@ type UserService interface {
 	RegisterUser(ctx context.Context, user *domain.User) (*domain.RegisterResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*domain.RefreshResponse, error)
 	RevokeToken(ctx context.Context, refreshToken string) error
-	AddContact(ctx context.Context, contactID string) error
-	RemoveContact(ctx context.Context, contactID string) error
+	AddContact(ctx context.Context, userID, contactID string) error
+	RemoveContact(ctx context.Context, userID, contactID string) error
 }

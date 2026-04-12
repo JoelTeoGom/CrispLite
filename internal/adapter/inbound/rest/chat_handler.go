@@ -21,10 +21,9 @@ func NewChatHandler(cs inbound.ChatService, logger outbound.Logger) *ChatHandler
 // @Tags         chat
 // @Produce      json
 // @Security     BearerAuth
-// @Param        id  path      string  true  "User ID"
 // @Success      200
 // @Failure      401  {string}  string  "Unauthorized"
-// @Router       /api/users/{id}/conversations [get]
+// @Router       /api/conversations [get]
 func (h *ChatHandler) ListConversations(w http.ResponseWriter, r *http.Request) {
 	// TODO implement
 }

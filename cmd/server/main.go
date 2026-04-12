@@ -65,12 +65,11 @@ func main() {
 	msgChannel := make(chan domain.Message, cfg.Batcher.Size)
 	defer close(msgChannel)
 	batcher := app.NewBatcher(msgChannel, cfg.Batcher.Size, cfg.Batcher.Interval, messageRepo, loggerAdapter)
-	batcher.Start()
+	batcher.Start(ctx)
 	defer batcher.Stop()
 
 	//AUTH
 	tokenService := auth.NewJWTService(cfg.Server.JWTSecret)
-
 	router := http.NewServeMux()
 
 	//SERVICES
@@ -79,7 +78,7 @@ func main() {
 
 	//HANDLERS
 	authHandler := rest.NewAuthHandler(userService, loggerAdapter, cfg.Env)
-	userHandler := rest.NewUserHandler(userService, loggerAdapter)
+	userHandler := rest.NewUserHandler(userService, tokenService, loggerAdapter)
 	chatHandler := rest.NewChatHandler(chatService, loggerAdapter)
 
 	handler := rest.RegisterRoutes(router, authHandler, userHandler, chatHandler, loggerAdapter, tokenService, cfg.Server.AllowedOrigin)
