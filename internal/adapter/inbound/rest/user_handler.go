@@ -1,9 +1,11 @@
 package rest
 
 import (
+	"crisplite/internal/domain"
 	"crisplite/internal/port/inbound"
 	"crisplite/internal/port/outbound"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 )
@@ -58,6 +60,14 @@ func (h *UserHandler) AddContact(w http.ResponseWriter, r *http.Request) {
 
 	err := h.userService.AddContact(r.Context(), claims.UserID, req.ContactID)
 	if err != nil {
+		if errors.Is(err, domain.ErrContactAlreadyExists) {
+			http.Error(w, "contact already exists", http.StatusConflict)
+			return
+		}
+		if errors.Is(err, domain.ErrInvalidContact) {
+			http.Error(w, "invalid contact", http.StatusBadRequest)
+			return
+		}
 		http.Error(w, "failed to add contact", http.StatusInternalServerError)
 		return
 	}

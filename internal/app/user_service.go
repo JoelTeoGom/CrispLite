@@ -177,7 +177,16 @@ func (s *UserService) RevokeToken(ctx context.Context, refreshToken string) erro
 }
 
 func (s *UserService) AddContact(ctx context.Context, userID, contactID string) error {
-	return s.userRepo.AddContact(ctx, userID, contactID)
+	if userID == contactID {
+		return domain.ErrInvalidContact
+	}
+
+	if err := s.userRepo.AddContact(ctx, userID, contactID); err != nil {
+		s.logger.Error(ctx, err)
+		return err
+	}
+	return nil
+
 }
 
 func (s *UserService) SearchUsers(ctx context.Context, excludeUserID, query string, limit, offset int) ([]domain.UserSummary, error) {
