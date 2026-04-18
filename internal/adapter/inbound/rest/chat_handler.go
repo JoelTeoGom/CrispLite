@@ -25,7 +25,11 @@ func NewChatHandler(cs inbound.ChatService, logger outbound.Logger) *ChatHandler
 // @Failure      401  {string}  string  "Unauthorized"
 // @Router       /api/conversations [get]
 func (h *ChatHandler) ListConversations(w http.ResponseWriter, r *http.Request) {
-	// TODO implement
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 }
 
 // LoadMessages godoc

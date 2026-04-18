@@ -185,6 +185,10 @@ func (s *UserService) AddContact(ctx context.Context, userID, contactID string) 
 		s.logger.Error(ctx, err)
 		return err
 	}
+	if err := s.userRepo.CreateConversation(ctx, userID, contactID); err != nil {
+		s.logger.Error(ctx, err)
+		return err
+	}
 	return nil
 
 }
@@ -205,4 +209,9 @@ func (s *UserService) SearchUsers(ctx context.Context, excludeUserID, query stri
 
 func (s *UserService) RemoveContact(ctx context.Context, userID, contactID string) error {
 	return s.userRepo.RemoveContact(ctx, userID, contactID)
+}
+
+func (s *UserService) GetConversationsList(ctx context.Context, limit int) ([]*domain.Message, error) {
+	//TODO
+	return nil, nil
 }

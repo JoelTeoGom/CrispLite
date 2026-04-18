@@ -44,28 +44,28 @@ func (b *Batcher) run(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			if len(batch) > 0 {
-				b.processor.BulkMessageInsert(batch)
+				b.processor.BulkMessageInsert(ctx, batch)
 			}
 		case <-b.done:
 			if len(batch) > 0 {
-				b.processor.BulkMessageInsert(batch)
+				b.processor.BulkMessageInsert(ctx, batch)
 			}
 			return
 		case <-ticker.C:
 			if len(batch) > 0 {
-				b.processor.BulkMessageInsert(batch)
+				b.processor.BulkMessageInsert(ctx, batch)
 				batch = nil
 			}
 		case msg, ok := <-b.messages:
 			if !ok {
 				if len(batch) > 0 {
-					b.processor.BulkMessageInsert(batch)
+					b.processor.BulkMessageInsert(ctx, batch)
 				}
 				return
 			}
 			batch = append(batch, &msg)
 			if len(batch) >= b.batchSize {
-				b.processor.BulkMessageInsert(batch)
+				b.processor.BulkMessageInsert(ctx, batch)
 				batch = nil
 			}
 		}

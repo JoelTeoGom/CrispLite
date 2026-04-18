@@ -67,6 +67,7 @@ func (p *UserRepo) GetUserByID(ctx context.Context, userID string) (*domain.User
 }
 
 func (p *UserRepo) AddContact(ctx context.Context, userID, contactID string) error {
+
 	_, err := p.pool.Exec(ctx, "INSERT INTO contacts (user_id, contact_id) VALUES ($1, $2)", userID, contactID)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -117,4 +118,31 @@ func (p *UserRepo) RemoveContact(ctx context.Context, userID, contactID string) 
 		}
 	}
 	return err
+}
+
+func (p *UserRepo) CreateConversation(ctx context.Context, userA, userB string) error {
+	tx, err := p.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	conversationID := uuid.New().String()
+	if userA > userB {
+		userA, userB = userB, userA
+	}
+	_, err = tx.Exec(ctx, "INSERT INTO conversations (id, user_a_id, user_b_id) VALUES ($1, $2, $3)", conversationID, userA, userB)
+	if err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
+func (p *UserRepo) RetrieveConversations(ctx context.Context, userId string, limit int) ([]*domain.ConversationSummary, error) {
+	// if userId == "" {
+	// 	return nil, domain.MustProvideValidUser
+	// }
+
+	// rows, err := p.pool.Exec(ctx, "SELECT FROM ")
+	return nil, nil
 }

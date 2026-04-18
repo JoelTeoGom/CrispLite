@@ -1,7 +1,10 @@
 package outbound
 
-import "crisplite/internal/domain"
+import (
+	"context"
+	"crisplite/internal/domain"
+)
 
 type MessageRepository interface {
-	BulkMessageInsert(batch []*domain.Message) error
+	BulkMessageInsert(ctx context.Context, batch []*domain.Message) error
 }
