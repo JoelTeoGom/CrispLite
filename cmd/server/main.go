@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "crisplite/docs"
 	"crisplite/internal/adapter/inbound/rest"
+	"crisplite/internal/adapter/inbound/ws"
 	"crisplite/internal/adapter/outbound/auth"
 	"crisplite/internal/adapter/outbound/config"
 	locallogger "crisplite/internal/adapter/outbound/local_logger"
@@ -78,6 +79,8 @@ func main() {
 	//SERVICES
 	userService := app.NewUserService(userRepo, authRepo, tokenService, loggerAdapter)
 	chatService := app.NewChatService(messageRepo, *batcher, loggerAdapter)
+	hub := ws.NewHub(chatService)
+	chatService.Hub = hub
 
 	//HANDLERS
 	authHandler := rest.NewAuthHandler(userService, loggerAdapter, cfg.Env)

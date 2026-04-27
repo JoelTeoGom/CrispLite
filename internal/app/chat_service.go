@@ -14,7 +14,6 @@ type ChatService struct {
 
 func NewChatService(messageRepo outbound.MessageRepository, batcher Batcher, logger outbound.Logger) *ChatService {
 	return &ChatService{
-		Hub:     ws.NewHub(),
 		Batcher: batcher,
 		logger:  logger,
 	}

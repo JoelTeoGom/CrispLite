@@ -2,7 +2,7 @@ package ws
 
 import (
 	"context"
-	"crisplite/internal/domain"
+	"crisplite/internal/port/inbound"
 	"sync"
 	"time"
 
@@ -11,36 +11,35 @@ import (
 )
 
 type Hub struct {
-	onlineClients map[string][]*domain.Client
+	onlineClients map[string][]*Connection
+	chatService   inbound.ChatService
 	mu            sync.RWMutex
 }
 
-func NewHub() *Hub {
+func NewHub(chatService inbound.ChatService) *Hub {
 	return &Hub{
-		onlineClients: make(map[string][]*domain.Client),
+		onlineClients: make(map[string][]*Connection),
+		chatService:   chatService,
 	}
 }
 
 func (h *Hub) Register(ctx context.Context, wsConn *websocket.Conn, userId, device string) (string, error) {
 	if wsConn == nil {
-		return "", domain.ErrNoWsConnProvided
+		return "", ErrNoWsConnProvided
 	}
 	connId := uuid.New().String()
-	createdAt := time.Now()
-	client := &domain.Client{
-		ConnID:    connId,
-		UserID:    userId,
-		Device:    device,
-		Conn:      wsConn,
-		CreatedAt: createdAt,
+	conn := &Connection{
+		ConnID:      connId,
+		UserID:      userId,
+		Device:      device,
+		CreatedAt:   time.Now(),
+		conn:        wsConn,
+		chatService: h.chatService,
 	}
+
 	h.mu.Lock()
 	defer h.mu.Unlock()
-
-	h.onlineClients[userId] = append(h.onlineClients[userId], client)
-	conn := &Connection{
-		Client: client,
-	}
+	h.onlineClients[userId] = append(h.onlineClients[userId], conn)
 
 	go conn.StartConnection(ctx)
 
@@ -49,7 +48,7 @@ func (h *Hub) Register(ctx context.Context, wsConn *websocket.Conn, userId, devi
 
 func (h *Hub) Unregister(ctx context.Context, wsConn *websocket.Conn, userId, connId string) error {
 	if wsConn == nil {
-		return domain.ErrNoWsConnProvided
+		return ErrNoWsConnProvided
 	}
 
 	h.mu.Lock()

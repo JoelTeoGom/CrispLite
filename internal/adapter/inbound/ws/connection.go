@@ -2,7 +2,7 @@ package ws
 
 import (
 	"context"
-	"crisplite/internal/domain"
+	"crisplite/internal/port/inbound"
 	"fmt"
 	"time"
 
@@ -17,15 +17,20 @@ const (
 )
 
 type Connection struct {
-	Client *domain.Client
+	ConnID      string
+	UserID      string
+	Device      string
+	CreatedAt   time.Time
+	conn        *websocket.Conn
+	chatService inbound.ChatService
 }
 
 func (c *Connection) StartConnection(ctx context.Context) error {
-	defer c.Client.Conn.Close()
+	defer c.conn.Close()
 	go c.writePump(ctx)
 
 	for {
-		_, _, err := c.Client.Conn.ReadMessage()
+		_, _, err := c.conn.ReadMessage()
 		if err != nil {
 			fmt.Println("Error reading message:", err)
 			break
@@ -63,7 +68,7 @@ func (c *Connection) writePump(ctx context.Context) {
 
 	for {
 		message := "ping"
-		err := c.Client.Conn.SetWriteDeadline(websocket.PingMessage, []byte(message))
+		err := c.conn.SetWriteDeadline(websocket.PingMessage, []byte(message))
 		if err != nil {
 			fmt.Println("Error reading message:", err)
 			break
