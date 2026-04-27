@@ -18,4 +18,5 @@ var (
 	ErrRevokedToken         = errors.New("token has been revoked")
 	ErrExpiredToken         = errors.New("token has expired")
 	ErrInvalidContact       = errors.New("invalid contact")
+	ErrNoWsConnProvided     = errors.New("no websocket connection provided")
 )

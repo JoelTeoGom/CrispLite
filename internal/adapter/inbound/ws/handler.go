@@ -1,19 +1,17 @@
 package ws
 
 import (
-	"crisplite/internal/domain"
 	"crisplite/internal/port/inbound"
+	"crisplite/internal/port/outbound"
 	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
 type Handler struct {
-	hub         inbound.Hub
-	chatService inbound.ChatService
+	hub          inbound.Hub
+	tokenService outbound.TokenService
 }
 
 var upgrader = websocket.Upgrader{
@@ -28,26 +26,17 @@ func (h *Handler) wsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error upgrading:", err)
 		return
 	}
+	defer wsConn.Close()
 
-	// TODO: extract userId from request (auth JWT)
-	userId := r.URL.Query().Get("userId")
-	uuid := uuid.New().String()
-	createdAt := time.Now()
-	client := &domain.Client{
-		ConnID:    uuid,
-		UserID:    userId,
-		Device:    "web", // TODO: determine device type
-		Conn:      wsConn,
-		CreatedAt: createdAt,
+	claims, ok := h.tokenService.ClaimsFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
 	}
-
-	conn := &Connection{
-		Client:      client,
-		chatService: h.chatService,
+	connId, err := h.hub.Register(r.Context(), wsConn, claims.UserID, "web")
+	if err != nil {
+		http.Error(w, "Error registering client", http.StatusInternalServerError)
+		return
 	}
-
-	h.hub.Connect(userId, client)
-	defer h.hub.Disconnect(userId, uuid)
-	go conn.readPump()
-	go conn.writePump()
+	defer h.hub.Unregister(r.Context(), wsConn, claims.UserID, connId)
 }

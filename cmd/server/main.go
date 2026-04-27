@@ -13,18 +13,21 @@ import (
 	"crisplite/internal/port/outbound"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-// @title           CrispLite API
-// @version         1.0
-// @description     CrispLite chat application API
-// @host            localhost:8080
-// @BasePath        /
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
+const (
+	_shutdownPeriod      = 15 * time.Second
+	_shutdownHardPeriod  = 3 * time.Second
+	_readinessDrainDelay = 5 * time.Second
+)
+
 func main() {
-	ctx := context.Background()
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	//CONFIGs
 	loader, err := config.NewConfigLoader(".env")
