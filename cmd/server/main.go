@@ -89,7 +89,34 @@ func main() {
 
 	handler := rest.RegisterRoutes(router, authHandler, userHandler, chatHandler, loggerAdapter, tokenService, cfg.Server.AllowedOrigin)
 
-	if err := http.ListenAndServe(":"+cfg.Server.Port, handler); err != nil {
-		log.Fatalf("server: %v", err)
+	serverErr := make(chan error, 1)
+	server := &http.Server{
+		Addr:    ":" + cfg.Server.Port,
+		Handler: handler,
 	}
+
+	go func() {
+		log.Printf("Server is running on port %s", cfg.Server.Port)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			serverErr <- err
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		log.Println("Shutdown signal received, shutting down gracefully...")
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), _shutdownPeriod)
+		defer cancel()
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			log.Printf("Graceful shutdown failed: %v", err)
+			hardShutdownCtx, hardCancel := context.WithTimeout(context.Background(), _shutdownHardPeriod)
+			defer hardCancel()
+			if err := server.Close(); err != nil {
+				log.Printf("Hard shutdown failed: %v", err)
+			}
+		}
+	case err := <-serverErr:
+		log.Printf("Server error: %v", err)
+	}
+
 }

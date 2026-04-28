@@ -1,8 +1,11 @@
 package inbound
 
-import "crisplite/internal/domain"
+import (
+	"context"
+	"crisplite/internal/domain"
+)
 
 type ChatService interface {
-	Send(msg *domain.Message) error
-	Deliver(msg *domain.Message) error
+	Send(ctx context.Context, msg *domain.Message) error
+	Deliver(ctx context.Context, msg *domain.Message) error
 }

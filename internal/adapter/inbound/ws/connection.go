@@ -29,8 +29,12 @@ func (c *Connection) StartConnection(ctx context.Context) error {
 	defer c.conn.Close()
 	go c.writePump(ctx)
 
+	err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+	if err != nil {
+		fmt.Println("Error setting write deadline:", err)
+		
 	for {
-		_, _, err := c.conn.ReadMessage()
+		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			fmt.Println("Error reading message:", err)
 			break
@@ -62,13 +66,13 @@ func (c *Connection) readPump(ctx context.Context) {
 
 }
 
+// writePump sends periodic ping messages to the client to keep the connection alive and detect disconnections.
 func (c *Connection) writePump(ctx context.Context) {
 	pumpTicker := time.NewTicker(pingInterval)
 	defer pumpTicker.Stop()
 
 	for {
-		message := "ping"
-		err := c.conn.SetWriteDeadline(websocket.PingMessage, []byte(message))
+
 		if err != nil {
 			fmt.Println("Error reading message:", err)
 			break
