@@ -1,14 +1,19 @@
 package rest
 
 import (
+	"context"
 	"crisplite/internal/adapter/inbound/rest/middleware"
 	"crisplite/internal/port/outbound"
+	"fmt"
 	"net/http"
+	"time"
 
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func RegisterRoutes(mux *http.ServeMux, ah *AuthHandler, uh *UserHandler, ch *ChatHandler, logger outbound.Logger, tokenService outbound.TokenService, allowedOrigin string) http.Handler {
+	mux.HandleFunc("GET /grateful", gratefulShutdown)
+
 	// Swagger
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
 
@@ -31,4 +36,23 @@ func RegisterRoutes(mux *http.ServeMux, ah *AuthHandler, uh *UserHandler, ch *Ch
 
 	// CORS + Logger wraps everything
 	return middleware.CORS(allowedOrigin, middleware.Logger(logger, mux))
+}
+
+func gratefulShutdown(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(time.Second*15))
+	defer cancel()
+
+	for {
+		select {
+		case <-r.Context().Done():
+			fmt.Println("Client canceled context")
+			return
+		case <-ctx.Done():
+			fmt.Println("reached timeout")
+			return
+		default:
+			fmt.Println("Infinite work")
+		}
+		time.Sleep(2 * time.Second)
+	}
 }

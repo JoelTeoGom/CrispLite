@@ -50,9 +50,8 @@ func (p *PubSub) StartPubSub(ctx context.Context, channel string) error {
 	}
 }
 
-func (p *PubSub) Subscribe(ctx context.Context, channel string) *redis.PubSub {
-	p.PubSub.Subscribe(ctx, channel)
-	return p.PubSub
+func (p *PubSub) Subscribe(ctx context.Context, channel string) error {
+	return p.PubSub.Subscribe(ctx, channel)
 }
 
 func (p *PubSub) Publish(ctx context.Context, channel string, message any) error {

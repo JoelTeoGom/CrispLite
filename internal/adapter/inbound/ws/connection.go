@@ -32,9 +32,10 @@ func (c *Connection) StartConnection(ctx context.Context) error {
 	err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 	if err != nil {
 		fmt.Println("Error setting write deadline:", err)
-		
+
+	}
 	for {
-		_, message, err := c.conn.ReadMessage()
+		_, _, err := c.conn.ReadMessage()
 		if err != nil {
 			fmt.Println("Error reading message:", err)
 			break
@@ -73,10 +74,10 @@ func (c *Connection) writePump(ctx context.Context) {
 
 	for {
 
-		if err != nil {
-			fmt.Println("Error reading message:", err)
-			break
-		}
+		// if err != nil {
+		// 	fmt.Println("Error reading message:", err)
+		// 	break
+		// }
 
 	}
 }

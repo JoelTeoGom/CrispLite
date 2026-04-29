@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"crisplite/internal/adapter/inbound/ws"
 	"crisplite/internal/domain"
 	"crisplite/internal/port/outbound"
@@ -19,14 +20,14 @@ func NewChatService(messageRepo outbound.MessageRepository, batcher Batcher, log
 	}
 }
 
-func (s *ChatService) Send(msg *domain.Message) error {
+func (s *ChatService) Send(ctx context.Context, msg *domain.Message) error {
 	// TODO: implement
 	//take te message and send it to batcher and redis
 
 	return nil
 }
 
-func (s *ChatService) Deliver(msg *domain.Message) error {
+func (s *ChatService) Deliver(ctx context.Context, msg *domain.Message) error {
 	// TODO: implement
 
 	// take HUB and send messages (we can do logic on them)

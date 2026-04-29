@@ -9,9 +9,11 @@ import (
 	"crisplite/internal/adapter/outbound/config"
 	locallogger "crisplite/internal/adapter/outbound/local_logger"
 	"crisplite/internal/adapter/outbound/postgres"
+	"crisplite/internal/adapter/outbound/redis"
 	"crisplite/internal/app"
 	"crisplite/internal/domain"
 	"crisplite/internal/port/outbound"
+	"fmt"
 	"log"
 	"net/http"
 	"os/signal"
@@ -59,6 +61,16 @@ func main() {
 	defer pool.Close()
 
 	//REDIS
+	redisClient, err := redis.NewClient(ctx, loggerAdapter, cfg.Redis)
+	if err != nil {
+		log.Fatalf("redis: %v", err)
+	}
+	defer redisClient.Close()
+	pubsub, err := redis.NewPubSub(ctx, loggerAdapter, cfg.Redis)
+	if err != nil {
+		log.Fatalf("redis: %v", err)
+	}
+	defer pubsub.Close()
 
 	//REPOS
 	messageRepo := postgres.NewMessageRepo(pool, loggerAdapter)
@@ -79,7 +91,7 @@ func main() {
 	//SERVICES
 	userService := app.NewUserService(userRepo, authRepo, tokenService, loggerAdapter)
 	chatService := app.NewChatService(messageRepo, *batcher, loggerAdapter)
-	hub := ws.NewHub(chatService)
+	hub := ws.NewHub(chatService, pubsub)
 	chatService.Hub = hub
 
 	//HANDLERS
@@ -106,17 +118,14 @@ func main() {
 	case <-ctx.Done():
 		log.Println("Shutdown signal received, shutting down gracefully...")
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), _shutdownPeriod)
+		log.Println()
 		defer cancel()
 		if err := server.Shutdown(shutdownCtx); err != nil {
 			log.Printf("Graceful shutdown failed: %v", err)
-			hardShutdownCtx, hardCancel := context.WithTimeout(context.Background(), _shutdownHardPeriod)
-			defer hardCancel()
-			if err := server.Close(); err != nil {
-				log.Printf("Hard shutdown failed: %v", err)
-			}
 		}
 	case err := <-serverErr:
 		log.Printf("Server error: %v", err)
 	}
 
+	fmt.Println("finally shudown process ended CLOSED FOREVER")
 }
